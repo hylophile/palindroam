@@ -1,6 +1,7 @@
 <script>
 	/** @type {import('./$types').PageData} */
 	export let data;
+	import Tooltip from './Tooltip.svelte';
 
 	import backlinks from '$lib/backlinks.json';
 	import { page } from '$app/stores';
@@ -27,3 +28,4 @@
 		</ul>
 	</aside>
 </div>
+<Tooltip />
