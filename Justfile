@@ -17,11 +17,11 @@ parallog +args:
 
 [private]
 pandoc:
-    fd typ notes \
+    fd md notes \
         --exec sh -c '\
             pandoc {} \
             --lua-filter=typ_to_html.lua \
-            -o app/src/lib/notes/$(basename {} .typ).html'   
+            -o app/src/lib/notes/$(basename {}).html'   
 
 [private]
 backlinks:
@@ -36,3 +36,8 @@ web_app:
 # watch_notes and web_app
 run:
     just parallog watch_notes web_app
+
+clean:
+		rm app/src/lib/backlinks.json
+		rm app/src/lib/notes/*
+
