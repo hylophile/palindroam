@@ -11,7 +11,7 @@
 	let hoveringLink = $state(false);
 	let content = $state('');
 
-	function move(event) {
+	function move(event: MouseEvent) {
 		mx = event.clientX;
 		my = event.clientY;
 	}
@@ -19,7 +19,6 @@
 	function hover(event) {
 		hoveringLink = event.target.tagName === 'A';
 		if (hoveringLink) {
-			// consoe.log(event.target.href);
 			fetch(event.target.href.replace('note', 'embed'))
 				.then((res) => {
 					return res.text();
@@ -33,7 +32,7 @@
 	}
 </script>
 
-{#if hoveringLink}
+{#if hoveringLink && content !== ''}
 	<div class="absolute bg-slate-100 border p-4" style="top: {my + 10}px; left: {mx + 10}px">
 		{@html content}
 	</div>

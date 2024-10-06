@@ -3,53 +3,53 @@
 @tailwind utilities;
 
 h1 {
-  @apply font-bold text-3xl;
+	@apply font-bold text-3xl;
 }
 h2 {
-  @apply font-bold text-2xl;
+	@apply font-bold text-2xl;
 }
 h3 {
-  @apply font-bold text-xl;
+	@apply font-bold text-xl;
 }
 
 a {
-  @apply underline decoration-dotted decoration-2 text-sky-600;
+	@apply underline decoration-dotted decoration-2 text-sky-600;
 
-  &:hover {
-    @apply text-sky-800;
-  }
+	&:hover {
+		@apply text-sky-800;
+	}
 }
 
 p {
-  @apply pb-4;
+	@apply pb-4;
 }
 
 .math {
-  @apply font-serif text-xl;
+	@apply font-serif text-xl;
 }
 
 .math.display {
-  @apply block text-center;
+	@apply block text-center;
 }
 
 pre {
-  @apply block pb-4 mt-[-1em];
+	@apply block pb-4 mt-[-1em];
 }
 
 code {
-  @apply bg-slate-200 px-2;
+	@apply bg-slate-200 px-2;
 }
 
 .kw {
-  @apply text-red-600;
+	@apply text-red-600;
 }
 
 html,
 body {
-  @apply h-full;
+	@apply h-full;
 }
 body {
-  @apply flex flex-col;
+	@apply flex flex-col;
 }
 
 /* @import '@fontsource/fira-mono'; */
