@@ -9,8 +9,8 @@
 	const currentBacklinks = (backlinks as Record<string, string[]>)[id] ?? [];
 </script>
 
-<div class="flex flex-grow h-full">
-	<aside class="bg-slate-300 p-4 w-1/4">
+<div class="h-full flex">
+	<aside class="p-4 w-1/4 h-full">
 		<h3>Notes</h3>
 		<ul class="whitespace-nowrap text-ellipsis">
 			{#each Object.keys(backlinks) as note}
@@ -18,10 +18,10 @@
 			{/each}
 		</ul>
 	</aside>
-	<div class="p-4 w-full">
+	<div class="bg-slate-100 p-4 h-full w-full overflow-scroll">
 		<div class="fl">{@html data.content}</div>
 	</div>
-	<aside class="bg-slate-300 p-4 w-1/2">
+	<aside class="p-4 w-1/2">
 		<h3>Backlinks</h3>
 		<ul>
 			{#each currentBacklinks as backlink}
