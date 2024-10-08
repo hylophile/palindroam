@@ -28,7 +28,7 @@ backlinks:
     uv run --with bs4 gen_backlinks.py
 
 watch_notes:
-    watchexec -w notes 'just pandoc && just backlinks'
+    watchexec --no-vcs-ignore --watch ./notes 'just pandoc && just backlinks'
 
 web_app:
     pnpm --prefix app run dev -- --open
