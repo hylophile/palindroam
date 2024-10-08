@@ -1,13 +1,12 @@
 import type { RouteParams } from './$types';
+import { note } from '$lib/note'
 
 export async function GET({ params }: { params: RouteParams }) {
-	const noteID = params.noteID.endsWith('.html') ? params.noteID : `${params.noteID}.html`;
-	const page = await import(`/src/lib/notes/${noteID}?raw`);
-
-	return new Response(page.default, {
-		headers: {
-			'Content-Type': 'text/html'
-			// "cache-control": "max-age=60",
-		}
-	});
+  const noteID = params.noteID.split('.html')[0];
+  const page = await note(noteID);
+  return new Response(page.default, {
+    headers: {
+      'Content-Type': 'text/html'
+    }
+  });
 }

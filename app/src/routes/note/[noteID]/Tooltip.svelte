@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { fetchNote } from './fetchnote';
 
 	onMount(() => {
 		document.body.addEventListener('mousemove', move);
@@ -19,13 +20,11 @@
 	function hover(event) {
 		hoveringLink = event.target.tagName === 'A';
 		if (hoveringLink) {
-			fetch(event.target.href.replace('note', 'embed'))
-				.then((res) => {
-					return res.text();
-				})
-				.then((text) => {
-					content = text;
-				});
+			const noteID = event.target.href.split('/note/')[1];
+			if (!noteID) throw new Error();
+			fetchNote(noteID).then((text) => {
+				content = text;
+			});
 		} else {
 			content = '';
 		}
