@@ -3,21 +3,21 @@
 @tailwind utilities;
 
 h1,h2,h3,h4,h5,h6 {
-  @apply pb-4;
+  @apply pb-4 font-medium;
 }
 
 h1 {
-	@apply font-bold text-3xl;
+	@apply text-3xl;
 }
 h2 {
-	@apply font-bold text-2xl;
+	@apply text-2xl;
 }
 h3 {
-	@apply font-bold text-xl;
+	@apply text-xl;
 }
 
 a {
-	@apply underline decoration-dotted decoration-2 text-sky-600;
+	@apply underline decoration-dotted decoration-2 text-cyan-700;
 
 	&:hover {
 		@apply text-sky-800;
@@ -50,8 +50,10 @@ code {
 
 html,
 body {
-	@apply h-full;
+	@apply h-full text-slate-900;
+	
 }
+
 body {
 	@apply flex flex-col;
 }

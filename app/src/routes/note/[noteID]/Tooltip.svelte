@@ -32,7 +32,10 @@
 </script>
 
 {#if hoveringLink && content !== ''}
-	<div class="absolute bg-slate-100 border p-4" style="top: {my + 10}px; left: {mx + 10}px">
+	<div
+		class="absolute bg-slate-100 border p-4 max-h-[50vh] overflow-hidden max-w-[50vw]"
+		style="top: {my + 10}px; left: {mx + 10}px"
+	>
 		{@html content}
 	</div>
 {/if}
