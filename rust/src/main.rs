@@ -26,9 +26,9 @@ struct Metadata {
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Args {
-    /// The path to the folder containing HTML files
+    /// The path to the directory containing HTML notes
     #[arg(short, long)]
-    folder: String,
+    notes_dir: String,
 
     /// Optional: The file to write the JSON output to (prints to stdout if not provided)
     #[clap(short, long)]
@@ -37,12 +37,12 @@ struct Args {
 
 fn main() -> Result<()> {
     let args = Args::parse();
-    let base_notes_folder = PathBuf::from(&args.folder).canonicalize()?;
+    let notes_dir = PathBuf::from(&args.notes_dir).canonicalize()?;
 
     let mut backlinks: Backlinks = HashMap::new();
 
     let mut file_paths = Vec::new();
-    for entry in WalkDir::new(&base_notes_folder)
+    for entry in WalkDir::new(&notes_dir)
         .into_iter()
         .filter_map(Result::ok)
         .filter(|e| e.path().extension().and_then(|ext| ext.to_str()) == Some("html"))
@@ -58,15 +58,15 @@ fn main() -> Result<()> {
         reader.read_to_string(&mut contents)?;
 
         let links = collect_links(&contents);
-        let current_file = file_path.strip_prefix(&base_notes_folder)?.to_path_buf();
-        let current_folder = base_notes_folder
+        let current_file = file_path.strip_prefix(&notes_dir)?.to_path_buf();
+        let current_file_dir = notes_dir
             .join(&current_file)
             .parent()
             .map(Path::to_path_buf)
             .unwrap();
 
         for link in links {
-            let resolved_link = resolve_link(&link, &current_folder, &base_notes_folder);
+            let resolved_link = resolve_link(&link, &current_file_dir, &notes_dir);
             match resolved_link {
                 Ok(linked_file) => {
                     backlinks
@@ -134,15 +134,15 @@ fn collect_links(html_content: &str) -> Vec<String> {
     links
 }
 
-/// Resolves relative links such that all links are relative to the `base_notes_folder`.
-fn resolve_link(link: &str, current_folder: &PathBuf, base_notes_folder: &Path) -> Result<PathBuf> {
+/// Resolves relative links such that all links are relative to the `notes_dir`.
+fn resolve_link(link: &str, current_file_dir: &PathBuf, notes_dir: &Path) -> Result<PathBuf> {
     let link_decoded = urlencoding::decode(link)?;
-    let link_absolute = current_folder
+    let link_absolute = current_file_dir
         .join(&*link_decoded)
         .with_added_extension("html")
         .canonicalize()?;
 
     Ok(link_absolute
-        .strip_prefix(base_notes_folder.canonicalize()?)?
+        .strip_prefix(notes_dir.canonicalize()?)?
         .to_path_buf())
 }
