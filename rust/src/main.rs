@@ -1,3 +1,5 @@
+#![feature(path_add_extension)]
+
 use clap::Parser;
 use regex::Regex;
 use scraper::{Html, Selector};
@@ -9,8 +11,11 @@ use std::io::{BufReader, Read};
 use std::path::{Path, PathBuf};
 use walkdir::WalkDir;
 
+use anyhow::{bail, Context, Result};
+use thiserror::Error;
+
 type Filename = String;
-type Backlinks = HashMap<Filename, HashSet<Filename>>;
+type Backlinks = HashMap<PathBuf, HashSet<PathBuf>>;
 
 #[derive(Serialize)]
 struct Metadata {
@@ -32,12 +37,12 @@ struct Args {
 
 fn main() {
     let args = Args::parse();
-    let folder_path = PathBuf::from(&args.folder);
+    let base_notes_folder = PathBuf::from(&args.folder);
 
     let mut backlinks: Backlinks = HashMap::new();
 
     let mut file_paths = Vec::new();
-    for entry in WalkDir::new(&folder_path)
+    for entry in WalkDir::new(&base_notes_folder)
         .into_iter()
         .filter_map(Result::ok)
         .filter(|e| e.path().extension().and_then(|ext| ext.to_str()) == Some("html"))
@@ -56,21 +61,27 @@ fn main() {
 
             // dbg!(&links);
             let current_file = file_path
-                .strip_prefix(&folder_path)
+                .strip_prefix(&base_notes_folder)
                 .unwrap()
-                .to_string_lossy()
-                .strip_suffix(".html")
-                .unwrap()
-                .to_string();
+                .to_path_buf();
+
+            // .to_string_lossy()
+            // .strip_suffix(".html")
+            // .unwrap()
+            // .to_string();
 
             for link in links {
-                let normalized_link =
-                    normalize_link(&link, &current_file, &file_paths, &folder_path);
-                if let Some(linked_file) = normalized_link {
+                let resolved_link = resolve_link(&link, &current_file, &base_notes_folder);
+                if let Ok(linked_file) = resolved_link {
                     backlinks
                         .entry(linked_file)
                         .or_default()
                         .insert(current_file.clone());
+                } else {
+                    eprintln!(
+                        "WARN: unresolved link: '{link}' (file: {})",
+                        current_file.display()
+                    );
                 }
             }
         }
@@ -96,6 +107,7 @@ fn main() {
     }
 }
 
+/// Collects all links to other notes. (TODO really?)
 fn collect_links(html_content: &str) -> Vec<String> {
     let document = Html::parse_document(html_content);
     let selector = Selector::parse("a").unwrap();
@@ -103,7 +115,7 @@ fn collect_links(html_content: &str) -> Vec<String> {
 
     for element in document.select(&selector) {
         if let Some(href) = element.value().attr("href") {
-            dbg!(href);
+            // dbg!(href);
             let re = Regex::new("^[^#]+").unwrap();
             if let Some(href_without_hash) = re.find(href) {
                 let href_without_hash = href_without_hash.as_str();
@@ -123,44 +135,21 @@ fn collect_links(html_content: &str) -> Vec<String> {
     links
 }
 
-// Function to normalize the link (resolve relative paths)
-fn normalize_link(
-    link: &str,
-    current_file: &str,
-    all_files: &[PathBuf],
-    base_folder: &Path,
-) -> Option<Filename> {
-    // Handle relative links by converting them into absolute paths
-    let current_path = base_folder.join(current_file);
+/// Resolves relative links such that all links are relative to the `base_notes_folder`.
+fn resolve_link(link: &str, current_file: &PathBuf, base_notes_folder: &Path) -> Result<PathBuf> {
+    let current_path = base_notes_folder.join(current_file);
 
     let base_path = current_path
         .parent()
         .map(Path::to_path_buf)
         .unwrap_or_default();
 
-    dbg!(current_path, &base_path, &link);
+    let decoded_link = urlencoding::decode(link).expect("cannot URL-decode link");
+    let u = base_path
+        .join(&*decoded_link)
+        .with_added_extension("html")
+        .canonicalize()?;
 
-    // TODO url decode link
-    let dec = urlencoding::decode(link).expect("utf8");
-    dbg!(&dec);
-    dbg!(base_path.join(&*dec));
-    dbg!(base_path.join(&*dec).join(".html")); // TODO this is readme.md/.html, but we want to append .html
-    panic!();
-    let absolute_link = base_path.join(link).canonicalize().ok()?;
-
-    // Check if the resolved path is one of the files in our list
-    for file in all_files {
-        dbg!(file.canonicalize());
-        if absolute_link == file.canonicalize().ok()? {
-            // Make the path relative to the base folder
-            return file
-                .strip_prefix(base_folder)
-                .ok()
-                .map(|path| path.to_string_lossy().to_string());
-        }
-    }
-
-    panic!();
-
-    None
+    Ok(u.strip_prefix(base_notes_folder.canonicalize()?)?
+        .to_path_buf())
 }
