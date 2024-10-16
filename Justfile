@@ -39,3 +39,8 @@ clean:
 		rm app/src/lib/backlinks.json
 		rm app/src/lib/notes/*
 
+clippy:
+	cd rust && cargo clippy -- -W clippy::nursery -W clippy::pedantic
+
+fix:
+  cd rust && cargo clippy --fix -- -W clippy::nursery -W clippy::pedantic

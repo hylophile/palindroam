@@ -11,10 +11,8 @@ use std::io::{BufReader, Read};
 use std::path::{Path, PathBuf};
 use walkdir::WalkDir;
 
-use anyhow::{bail, Context, Result};
-use thiserror::Error;
+use anyhow::Result;
 
-type Filename = String;
 type Backlinks = HashMap<PathBuf, HashSet<PathBuf>>;
 
 #[derive(Serialize)]
@@ -135,7 +133,7 @@ fn collect_links(html_content: &str) -> Vec<String> {
 }
 
 /// Resolves relative links such that all links are relative to the `notes_dir`.
-fn resolve_link(link: &str, current_file_dir: &PathBuf, notes_dir: &Path) -> Result<PathBuf> {
+fn resolve_link(link: &str, current_file_dir: &Path, notes_dir: &Path) -> Result<PathBuf> {
     let link_decoded = urlencoding::decode(link)?;
     let link_absolute = current_file_dir
         .join(&*link_decoded)
