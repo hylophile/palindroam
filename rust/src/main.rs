@@ -35,9 +35,9 @@ struct Args {
     output: Option<String>,
 }
 
-fn main() {
+fn main() -> Result<()> {
     let args = Args::parse();
-    let base_notes_folder = PathBuf::from(&args.folder);
+    let base_notes_folder = PathBuf::from(&args.folder).canonicalize()?;
 
     let mut backlinks: Backlinks = HashMap::new();
 
@@ -52,34 +52,31 @@ fn main() {
     }
 
     for file_path in &file_paths {
-        if let Ok(file) = File::open(file_path) {
-            let mut reader = BufReader::new(file);
-            let mut contents = String::new();
-            reader.read_to_string(&mut contents).unwrap();
+        let file = File::open(file_path)?;
+        let mut reader = BufReader::new(file);
+        let mut contents = String::new();
+        reader.read_to_string(&mut contents)?;
 
-            let links = collect_links(&contents);
+        let links = collect_links(&contents);
+        let current_file = file_path.strip_prefix(&base_notes_folder)?.to_path_buf();
+        let current_folder = base_notes_folder
+            .join(&current_file)
+            .parent()
+            .map(Path::to_path_buf)
+            .unwrap();
 
-            // dbg!(&links);
-            let current_file = file_path
-                .strip_prefix(&base_notes_folder)
-                .unwrap()
-                .to_path_buf();
-
-            // .to_string_lossy()
-            // .strip_suffix(".html")
-            // .unwrap()
-            // .to_string();
-
-            for link in links {
-                let resolved_link = resolve_link(&link, &current_file, &base_notes_folder);
-                if let Ok(linked_file) = resolved_link {
+        for link in links {
+            let resolved_link = resolve_link(&link, &current_folder, &base_notes_folder);
+            match resolved_link {
+                Ok(linked_file) => {
                     backlinks
                         .entry(linked_file)
                         .or_default()
                         .insert(current_file.clone());
-                } else {
+                }
+                Err(err) => {
                     eprintln!(
-                        "WARN: unresolved link: '{link}' (file: {})",
+                        "WARN: {err} (link: {link}, file: {})",
                         current_file.display()
                     );
                 }
@@ -105,6 +102,8 @@ fn main() {
             println!("{json_output}");
         }
     }
+
+    Ok(())
 }
 
 /// Collects all links to other notes. (TODO really?)
@@ -136,20 +135,14 @@ fn collect_links(html_content: &str) -> Vec<String> {
 }
 
 /// Resolves relative links such that all links are relative to the `base_notes_folder`.
-fn resolve_link(link: &str, current_file: &PathBuf, base_notes_folder: &Path) -> Result<PathBuf> {
-    let current_path = base_notes_folder.join(current_file);
-
-    let base_path = current_path
-        .parent()
-        .map(Path::to_path_buf)
-        .unwrap_or_default();
-
-    let decoded_link = urlencoding::decode(link).expect("cannot URL-decode link");
-    let u = base_path
-        .join(&*decoded_link)
+fn resolve_link(link: &str, current_folder: &PathBuf, base_notes_folder: &Path) -> Result<PathBuf> {
+    let link_decoded = urlencoding::decode(link)?;
+    let link_absolute = current_folder
+        .join(&*link_decoded)
         .with_added_extension("html")
         .canonicalize()?;
 
-    Ok(u.strip_prefix(base_notes_folder.canonicalize()?)?
+    Ok(link_absolute
+        .strip_prefix(base_notes_folder.canonicalize()?)?
         .to_path_buf())
 }
