@@ -1,0 +1,9 @@
+
+run:
+  cargo run --release -- --notes-dir ../app/src/lib/notes/ --output ../app/src/lib/metadata.json
+
+clippy:
+  cargo clippy -- -W clippy::nursery -W clippy::pedantic
+
+fix:
+  cargo clippy --fix -- -W clippy::nursery -W clippy::pedantic

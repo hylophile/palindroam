@@ -17,16 +17,17 @@ parallog +args:
 
 [private]
 pandoc:
+  echo
+  # TODO: only changed files
   fd . ./notes -td --exec sh -c 'mkdir -p "app/src/lib/{}"'
   fd md ./notes --exec sh -c 'pandoc "{}" -o "app/src/lib/{}.html"'
 
-# --lua-filter=typ_to_html.lua \
 [private]
-backlinks:
-    uv run --with bs4 gen_backlinks.py
+metadata:
+    just rust/run
 
 watch_notes:
-    watchexec --no-vcs-ignore --watch ./notes 'just pandoc && just backlinks'
+    watchexec --no-vcs-ignore --watch ./notes 'just pandoc; just metadata'
 
 web_app:
     pnpm --prefix app run dev -- --open
@@ -36,11 +37,5 @@ run:
     just parallog watch_notes web_app
 
 clean:
-		rm app/src/lib/backlinks.json
+		rm app/src/lib/metadata.json
 		rm app/src/lib/notes/*
-
-clippy:
-	cd rust && cargo clippy -- -W clippy::nursery -W clippy::pedantic
-
-fix:
-  cd rust && cargo clippy --fix -- -W clippy::nursery -W clippy::pedantic

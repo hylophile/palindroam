@@ -1,15 +1,13 @@
 #![feature(path_add_extension)]
 
-use std::path::PathBuf;
-
 use anyhow::Result;
+use backlinks::Backlinks;
 use clap::Parser;
 use serde::Serialize;
 use serde_json::to_string_pretty;
+use std::path::PathBuf;
 
 mod backlinks;
-
-use backlinks::Backlinks;
 
 #[derive(Serialize)]
 struct Metadata {
