@@ -3,18 +3,18 @@
 	export let data: PageData;
 	import Tooltip from './Tooltip.svelte';
 
-	import backlinks from '$lib/backlinks.json';
+	import metadata from '$lib/metadata.json';
 	import { page } from '$app/stores';
-	const id = $page.params.noteID;
-	const currentBacklinks = (backlinks as Record<string, string[]>)[id] ?? [];
+	const id = $page.params.notePath;
+	const currentBacklinks = (metadata['backlinks'] as Record<string, string[]>)[id] ?? [];
 </script>
 
 <div class="h-full flex">
 	<aside class="p-4 w-1/4 h-full">
 		<h3>Notes</h3>
 		<ul class="whitespace-nowrap text-ellipsis">
-			{#each Object.keys(backlinks) as note}
-				<li><a href={note}>{note.split('.html')[0]}</a></li>
+			{#each Object.keys(metadata['backlinks']) as note}
+				<li><a href={'/note/' + note}>{note.split('.html')[0]}</a></li>
 			{/each}
 		</ul>
 	</aside>
