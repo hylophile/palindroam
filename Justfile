@@ -17,12 +17,10 @@ parallog +args:
 
 [private]
 pandoc:
-    fd md notes \
-        --exec sh -c '\
-            pandoc {} \
-            --lua-filter=typ_to_html.lua \
-            -o app/src/lib/notes/$(basename {}).html'   
+  fd . ./notes -td --exec sh -c 'mkdir -p "app/src/lib/{}"'
+  fd md ./notes --exec sh -c 'pandoc "{}" -o "app/src/lib/{}.html"'
 
+# --lua-filter=typ_to_html.lua \
 [private]
 backlinks:
     uv run --with bs4 gen_backlinks.py
